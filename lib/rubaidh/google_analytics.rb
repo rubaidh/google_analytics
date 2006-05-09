@@ -1,9 +1,19 @@
 module Rubaidh # :nodoc:
   module GoogleAnalyticsMixin
+    def google_analytics_code
+      return unless GoogleAnalytics.enabled?
+      GoogleAnalytics.new.google_analytics_code
+    end
+    
+    # An after_filter to automatically add the analytics code.
     def add_google_analytics_code
-      GoogleAnalytics.new.add_google_analytics_code
+      code = google_analytics_code
+      return if code.blank?
+
+      response.body.gsub! '</body>', code + '</body>'
     end
   end
+
   class GoogleAnalytics
     # Specify the Google Analytics ID for this web site.  This can be found
     # as the value of +_uacct+ in the Javascript excerpt
@@ -20,9 +30,17 @@ module Rubaidh # :nodoc:
     @@environments = ['production']
     cattr_accessor :environments
 
-    def add_google_analytics_code
-      # Insert the Google analytics code into the end of the outgoing
-      # page, just before the </body> tag.
+    # Return true if the Google Analytics system is enabled and configured
+    # correctly.
+    def self.enabled?
+      (environments.include?(RAILS_ENV) and
+        not tracker_id.blank? and
+        not analytics_url.blank?)
+    end
+    
+    def google_analytics_code
+      # OK, I'm not very bright -- I tried to turn this into a partial and
+      # failed miserably!  So it'll have to live here for now.
       code = <<-HTML
       <script src="#{analytics_url}" type="text/javascript">
       </script>
@@ -31,7 +49,7 @@ module Rubaidh # :nodoc:
       urchinTracker();
       </script>
       HTML
-      code if environments.include?(RAILS_ENV) and tracker_id and analytics_url
+      code
     end
   end
 end

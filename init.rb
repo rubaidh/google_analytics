@@ -1,2 +1,3 @@
 require 'rubaidh/google_analytics'
-ApplicationHelper.send :include, Rubaidh::GoogleAnalyticsMixin
+ActionController::Base.send :include, Rubaidh::GoogleAnalyticsMixin
+ActionController::Base.send :after_filter, :add_google_analytics_code
