@@ -1,1 +1,2 @@
-# Include hook code here
+require 'rubaidh/google_analytics'
+ApplicationHelper.send :include, Rubaidh::GoogleAnalyticsMixin
