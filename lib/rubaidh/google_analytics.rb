@@ -15,6 +15,11 @@ module Rubaidh # :nodoc:
     @@analytics_url = 'http://www.google-analytics.com/urchin.js'
     cattr_accessor :analytics_url
 
+    # The environments in which to enable the Google Analytics code.  Defaults
+    # to 'production' only.
+    @@environments = ['production']
+    cattr_accessor :environments
+
     def add_google_analytics_code
       # Insert the Google analytics code into the end of the outgoing
       # page, just before the </body> tag.
@@ -26,7 +31,7 @@ module Rubaidh # :nodoc:
       urchinTracker();
       </script>
       HTML
-      code if RAILS_ENV == "production"
+      code if environments.include?(RAILS_ENV) and tracker_id and analytics_url
     end
   end
 end
