@@ -9,7 +9,6 @@ module Rubaidh # :nodoc:
     def add_google_analytics_code
       code = google_analytics_code
       return if code.blank?
-
       response.body.gsub! '</body>', code + '</body>'
     end
   end
