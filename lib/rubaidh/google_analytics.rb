@@ -51,7 +51,6 @@ module Rubaidh # :nodoc:
     
     def google_analytics_code(request = nil)
       extra_code = domain_name.blank? ? nil : "_udn = \"#{domain_name}\";"
-      breakpoint
       url = (not request.blank? and request.ssl?) ? analytics_ssl_url : analytics_url
 
       # OK, I'm not very bright -- I tried to turn this into a partial and
