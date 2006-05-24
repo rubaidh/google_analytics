@@ -33,7 +33,7 @@ module Rubaidh # :nodoc:
 
     # I can't see why you'd want to do this, but you can always change the
     # analytics URL (ssl version).
-    @@analytics_ssl_url = 'https://www.google-analytics.com/urchin.js'
+    @@analytics_ssl_url = 'https://ssl.google-analytics.com/urchin.js'
     cattr_accessor :analytics_ssl_url
 
     # The environments in which to enable the Google Analytics code.  Defaults
