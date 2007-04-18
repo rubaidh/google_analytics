@@ -2,14 +2,14 @@ module Rubaidh # :nodoc:
   module GoogleAnalyticsMixin
     def google_analytics_code(request = nil)
       return unless GoogleAnalytics.enabled?
-      GoogleAnalytics.new.google_analytics_code(request)
+      GoogleAnalytics.google_analytics_code(request)
     end
     
     # An after_filter to automatically add the analytics code.
     def add_google_analytics_code
       code = google_analytics_code(request)
       return if code.blank?
-      response.body.gsub! '</body>', code + '</body>'
+      response.body.gsub! '</body>', code + '</body>' if response.body.respond_to?(:gsub!)
     end
   end
 
@@ -49,7 +49,7 @@ module Rubaidh # :nodoc:
         not analytics_url.blank?)
     end
     
-    def google_analytics_code(request = nil)
+    def self.google_analytics_code(request = nil)
       extra_code = domain_name.blank? ? nil : "_udn = \"#{domain_name}\";"
       url = (not request.blank? and request.ssl?) ? analytics_ssl_url : analytics_url
 
