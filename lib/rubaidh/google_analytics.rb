@@ -59,9 +59,11 @@ module Rubaidh # :nodoc:
       <script src="#{url}" type="text/javascript">
       </script>
       <script type="text/javascript">
+      <!--//--><![CDATA[//><!--
       _uacct = "#{tracker_id}";
       #{extra_code}
       urchinTracker();
+      //--><!]]>
       </script>
       HTML
       code
