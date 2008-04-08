@@ -28,12 +28,12 @@ module Rubaidh # :nodoc:
     
     # I can't see why you'd want to do this, but you can always change the
     # analytics URL.
-    @@analytics_url = 'http://www.google-analytics.com/urchin.js'
+    @@analytics_url = 'http://www.google-analytics.com/ga.js'
     cattr_accessor :analytics_url
 
     # I can't see why you'd want to do this, but you can always change the
     # analytics URL (ssl version).
-    @@analytics_ssl_url = 'https://ssl.google-analytics.com/urchin.js'
+    @@analytics_ssl_url = 'https://ssl.google-analytics.com/ga.js'
     cattr_accessor :analytics_ssl_url
 
     # The environments in which to enable the Google Analytics code.  Defaults
@@ -50,7 +50,7 @@ module Rubaidh # :nodoc:
     end
     
     def self.google_analytics_code(request = nil)
-      extra_code = domain_name.blank? ? nil : "_udn = \"#{domain_name}\";"
+      extra_code = domain_name.blank? ? nil : "_setDomainName(\"#{domain_name}\");"
       url = (not request.blank? and request.ssl?) ? analytics_ssl_url : analytics_url
 
       # OK, I'm not very bright -- I tried to turn this into a partial and
@@ -60,9 +60,10 @@ module Rubaidh # :nodoc:
       </script>
       <script type="text/javascript">
       <!--//--><![CDATA[//><!--
-      _uacct = "#{tracker_id}";
+      var pageTracker = _gat._getTracker('#{tracker_id}');
       #{extra_code}
-      urchinTracker();
+      pageTracker._initData();
+      pageTracker._trackPageview();
       //--><!]]>
       </script>
       HTML
