@@ -17,3 +17,11 @@ If you want to disable the code insertion for particular pages, add the followin
     skip_after_filter :add_google_analytics_code
 
 Simple. :-)
+
+NOTE
+
+This version of the plugin uses the new Google Analytics code (ga.js) by
+default.  To use the legacy tracking code add the following line to your
+`config/environmet.rb`:
+
+    Rubaidh::GoogleAnalytics.legacy_mode = true

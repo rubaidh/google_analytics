@@ -25,14 +25,18 @@ module Rubaidh # :nodoc:
     # information.
     @@domain_name = nil
     cattr_accessor :domain_name
+
+    # Specify whether the legacy Google Analytics code should be used.
+    @@legacy_mode = false
+    cattr_accessor :legacy_mode
     
     # I can't see why you'd want to do this, but you can always change the
-    # analytics URL.
+    # analytics URL.  This is only applicable in legacy mode.
     @@analytics_url = 'http://www.google-analytics.com/urchin.js'
     cattr_accessor :analytics_url
 
     # I can't see why you'd want to do this, but you can always change the
-    # analytics URL (ssl version).
+    # analytics URL (ssl version).  This is only applicable in legacy mode.
     @@analytics_ssl_url = 'https://ssl.google-analytics.com/urchin.js'
     cattr_accessor :analytics_ssl_url
 
@@ -50,6 +54,26 @@ module Rubaidh # :nodoc:
     end
     
     def self.google_analytics_code(request = nil)
+      return legacy_google_analytics_code(request) if legacy_mode
+
+      extra_code = domain_name.blank? ? nil : "pageTracker._setDomainName(\"#{domain_name}\");"
+      code = <<-HTML
+      <script type="text/javascript">
+      var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+      document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+      </script>
+      <script type="text/javascript">
+      var pageTracker = _gat._getTracker("#{tracker_id}");
+      #{extra_code}
+      pageTracker._initData();
+      pageTracker._trackPageview();
+      </script>
+      HTML
+      code
+    end
+
+    # Run the legacy version of the Google Analytics code.
+    def self.legacy_google_analytics_code(request = nil)
       extra_code = domain_name.blank? ? nil : "_udn = \"#{domain_name}\";"
       url = (not request.blank? and request.ssl?) ? analytics_ssl_url : analytics_url
 
