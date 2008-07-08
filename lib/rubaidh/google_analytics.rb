@@ -1,7 +1,7 @@
 module Rubaidh # :nodoc:
   module GoogleAnalyticsMixin
     def google_analytics_code(request = nil)
-      return unless GoogleAnalytics.enabled?
+      return unless GoogleAnalytics.enabled? && GoogleAnalytics.formats.include?(request.format.to_sym)
       GoogleAnalytics.google_analytics_code(request)
     end
     
@@ -40,6 +40,11 @@ module Rubaidh # :nodoc:
     # to 'production' only.
     @@environments = ['production']
     cattr_accessor :environments
+    
+    # The formats for which to add.  Defaults
+    # to :html only.
+    @@formats = [:html]
+    cattr_accessor :formats
 
     # Return true if the Google Analytics system is enabled and configured
     # correctly.
