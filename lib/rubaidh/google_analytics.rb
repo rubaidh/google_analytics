@@ -1,17 +1,16 @@
 module Rubaidh # :nodoc:
   module GoogleAnalyticsMixin
-    def google_analytics_code(request = nil)
-      return unless GoogleAnalytics.enabled? && GoogleAnalytics.formats.include?(request.format.to_sym)
-      GoogleAnalytics.google_analytics_code(request)
+    def google_analytics_code
+      GoogleAnalytics.google_analytics_code(request.ssl?) if GoogleAnalytics.enabled?(request.format)
     end
     
     # An after_filter to automatically add the analytics code.
     def add_google_analytics_code
-      code = google_analytics_code(request)
-      return if code.blank?
-      response.body.gsub! '</body>', code + '</body>' if response.body.respond_to?(:gsub!)
+      response.body.sub! '</body>', "#{google_analytics_code}</body>" if response.body.respond_to?(:sub!)
     end
   end
+
+  class GoogleAnalyticsConfigurationError < StandardError; end
 
   class GoogleAnalytics
     # Specify the Google Analytics ID for this web site.  This can be found
@@ -47,16 +46,15 @@ module Rubaidh # :nodoc:
     cattr_accessor :formats
 
     # Return true if the Google Analytics system is enabled and configured
-    # correctly.
-    def self.enabled?
-      (environments.include?(RAILS_ENV) and
-        not tracker_id.blank? and
-        not analytics_url.blank?)
+    # correctly for the specified format
+    def self.enabled?(format)
+      raise Rubaidh::GoogleAnalyticsConfigurationError if tracker_id.blank? || analytics_url.blank?
+      environments.include?(RAILS_ENV) && formats.include?(format.to_sym)
     end
     
-    def self.google_analytics_code(request = nil)
+    def self.google_analytics_code(ssl=false)
       extra_code = domain_name.blank? ? nil : "_setDomainName(\"#{domain_name}\");"
-      url = (not request.blank? and request.ssl?) ? analytics_ssl_url : analytics_url
+      url = ssl ? analytics_ssl_url : analytics_url
 
       # OK, I'm not very bright -- I tried to turn this into a partial and
       # failed miserably!  So it'll have to live here for now.
