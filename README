@@ -25,3 +25,13 @@ default.  To use the legacy tracking code add the following line to your
 `config/environmet.rb`:
 
     Rubaidh::GoogleAnalytics.legacy_mode = true
+
+TRACKING OUTBOUND LINKS
+
+Google Analytics only tracks intra-site links by default. To create an outbound link that is tracked use
+the link_to_tracked helper:
+
+link_to_tracked(name, track_path = "/", options = {}, html_options = {})
+
+You can use the track_path parameter to group your outbound links into logical folders inside of
+Google Analytics.
