@@ -6,14 +6,14 @@ module Rubaidh # :nodoc:
     end
     
     # An after_filter to automatically add the analytics code.
-      # Add the code at the top of the page to support calls to _trackPageView 
-      #   (see http://www.google.com/support/googleanalytics/bin/answer.py?answer=55527&topic=11006)
-      def add_google_analytics_code
-        code = google_analytics_code(request)
-        return if code.blank?
-        response.body.gsub! '<body>', '<body>' + code if response.body.respond_to?(:gsub!)
-      end
+    # Add the code at the top of the page to support calls to _trackPageView 
+    #   (see http://www.google.com/support/googleanalytics/bin/answer.py?answer=55527&topic=11006)
+    def add_google_analytics_code
+      code = google_analytics_code(request)
+      return if code.blank?
+      response.body.gsub! '<body>', '<body>' + code if response.body.respond_to?(:gsub!)
     end
+  end
 
   class GoogleAnalytics
     # Specify the Google Analytics ID for this web site.  This can be found
