@@ -1,6 +1,6 @@
 spec = Gem::Specification.new do |s|
   s.name        = 'google_analytics'
-  s.version     = '1.0.20080710'
+  s.version     = '1.0.20080714'
   s.author      = 'Graeme Mathieson'
   s.email       = 'mathie@rubaidh.com'
   s.homepage    = 'http://github.com/rubaidh/google_analytics/tree/master'
@@ -14,7 +14,12 @@ spec = Gem::Specification.new do |s|
                   'This can be discovered by looking at the value assigned to +_uacct+' +
                   'in the Javascript code.'
   
-  s.files = %w(README Rakefile rails/init.rb test/google_analytics_test.rb lib/rubaidh/google_analytics.rb)
+  s.files = %w( README Rakefile rails/init.rb
+                test/google_analytics_test.rb
+                test/test_helper.rb
+                test/view_helpers_test.rb
+                lib/rubaidh/google_analytics.rb
+                lib/rubaidh/view_helpers.rb)
   
   s.add_dependency 'actionpack'
 end
