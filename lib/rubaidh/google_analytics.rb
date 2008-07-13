@@ -5,6 +5,8 @@ module Rubaidh # :nodoc:
     end
     
     # An after_filter to automatically add the analytics code.
+    # Add the code at the top of the page to support calls to _trackPageView 
+    #   (see http://www.google.com/support/googleanalytics/bin/answer.py?answer=55527&topic=11006)
     def add_google_analytics_code
       response.body.sub! '</body>', "#{google_analytics_code}</body>" if response.body.respond_to?(:sub!)
     end
@@ -24,15 +26,19 @@ module Rubaidh # :nodoc:
     # information.
     @@domain_name = nil
     cattr_accessor :domain_name
+
+    # Specify whether the legacy Google Analytics code should be used.
+    @@legacy_mode = false
+    cattr_accessor :legacy_mode
     
     # I can't see why you'd want to do this, but you can always change the
-    # analytics URL.
-    @@analytics_url = 'http://www.google-analytics.com/ga.js'
+    # analytics URL.  This is only applicable in legacy mode.
+    @@analytics_url = 'http://www.google-analytics.com/urchin.js'
     cattr_accessor :analytics_url
 
     # I can't see why you'd want to do this, but you can always change the
-    # analytics URL (ssl version).
-    @@analytics_ssl_url = 'https://ssl.google-analytics.com/ga.js'
+    # analytics URL (ssl version).  This is only applicable in legacy mode.
+    @@analytics_ssl_url = 'https://ssl.google-analytics.com/urchin.js'
     cattr_accessor :analytics_ssl_url
 
     # The environments in which to enable the Google Analytics code.  Defaults
@@ -52,14 +58,15 @@ module Rubaidh # :nodoc:
       environments.include?(RAILS_ENV) && formats.include?(format.to_sym)
     end
     
-    def self.google_analytics_code(ssl=false)
-      extra_code = domain_name.blank? ? nil : "_setDomainName(\"#{domain_name}\");"
-      url = ssl ? analytics_ssl_url : analytics_url
+    def self.google_analytics_code(ssl = false)
+      return legacy_google_analytics_code(ssl) if legacy_mode
 
-      # OK, I'm not very bright -- I tried to turn this into a partial and
-      # failed miserably!  So it'll have to live here for now.
+      extra_code = domain_name.blank? ? nil : "pageTracker._setDomainName(\"#{domain_name}\");"
+
       code = <<-HTML
-      <script src="#{url}" type="text/javascript">
+      <script type="text/javascript">
+      var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+      document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
       </script>
       <script type="text/javascript">
       <!--//--><![CDATA[//><!--
@@ -70,7 +77,22 @@ module Rubaidh # :nodoc:
       //--><!]]>
       </script>
       HTML
-      code
+    end
+
+    # Run the legacy version of the Google Analytics code.
+    def self.legacy_google_analytics_code(ssl = false)
+      extra_code = domain_name.blank? ? nil : "_udn = \"#{domain_name}\";"
+      url = ssl ? analytics_ssl_url : analytics_url
+
+      code = <<-HTML
+      <script src="#{url}" type="text/javascript">
+      </script>
+      <script type="text/javascript">
+      _uacct = "#{tracker_id}";
+      #{extra_code}
+      urchinTracker();
+      </script>
+      HTML
     end
   end
 end

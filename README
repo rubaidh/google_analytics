@@ -19,9 +19,39 @@ If you want to disable the code insertion for particular pages, add the followin
 If you are running rails 2.1 or above add install this by adding:
     
     config.gem 'markcatley-google_analytics', :lib => 'rubaidh/google_analytics', :source => 'http://gems.github.com'
-
+    
 and run:
 
     rake gems:install
 
 Simple. :-)
+
+
+NOTE
+
+This version of the plugin uses the new Google Analytics code (ga.js) by
+default.  To use the legacy tracking code add the following line to your
+`config/environment.rb`:
+
+    Rubaidh::GoogleAnalytics.legacy_mode = true
+
+TRACKING OUTBOUND LINKS
+
+Google Analytics only tracks intra-site links by default. To create an outbound link that is tracked use
+the link_to_tracked helper:
+
+link_to_tracked(name, track_path = "/", options = {}, html_options = {})
+
+You can use the track_path parameter to group your outbound links into logical folders inside of
+Google Analytics.
+
+The other forms of link_to are also supported:
+
+link_to_tracked_if(condition, name, track_path = "/", options = {}, html_options = {}, &block)
+link_to_tracked_unless(condition, name, track_path = "/", options = {}, html_options = {}, &block)
+link_to_tracked_unless_current(name, track_path = "/", options = {}, html_options = {}, &block)
+
+Tracked links respect the legacy_mode flag.
+
+Note: Link-tracking works by inserting onclick() code in the HTML. Because of this, it will overwrite
+any onclick that you insert in the html_options hash.
