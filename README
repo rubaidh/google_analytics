@@ -16,4 +16,12 @@ If you want to disable the code insertion for particular pages, add the followin
 
     skip_after_filter :add_google_analytics_code
 
+If you are running rails 2.1 or above add install this by adding:
+    
+    config.gem 'markcatley-google_analytics', :lib => 'rubaidh/google_analytics', :source => 'http://gems.github.com'
+
+and run:
+
+    rake gems:install
+
 Simple. :-)
