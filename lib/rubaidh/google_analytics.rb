@@ -7,8 +7,14 @@ module Rubaidh # :nodoc:
     # An after_filter to automatically add the analytics code.
     # Add the code at the top of the page to support calls to _trackPageView 
     #   (see http://www.google.com/support/googleanalytics/bin/answer.py?answer=55527&topic=11006)
+    # If you're not going to use the link_to_tracked view helpers, you can set Rubaidh::GoogleAnalytics.defer_load = true
+    #  to load the codel at the bottom of the page
     def add_google_analytics_code
-      response.body.sub! '</body>', "#{google_analytics_code}</body>" if response.body.respond_to?(:sub!)
+      if GoogleAnalytics.defer_load
+        response.body.sub! '</body>', "#{google_analytics_code}</body>" if response.body.respond_to?(:sub!)
+      else
+        response.body.sub! '<body>', "<body>#{google_analytics_code}" if response.body.respond_to?(:sub!)
+      end
     end
   end
 
@@ -51,6 +57,12 @@ module Rubaidh # :nodoc:
     @@formats = [:html]
     cattr_accessor :formats
 
+    # Set this to true if you want to load the Analytics javascript at the bottom of
+    # each page rather than at the top. This may result in faster page render times, 
+    # but may break link_to_tracked functionality.
+    @@defer_load = false
+    cattr_accessor :defer_load
+    
     # Return true if the Google Analytics system is enabled and configured
     # correctly for the specified format
     def self.enabled?(format)
