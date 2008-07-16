@@ -63,6 +63,14 @@ module Rubaidh # :nodoc:
     @@defer_load = false
     cattr_accessor :defer_load
     
+    # Set this to true to use a local copy of the ga.js (or urchin.js) file.
+    # This gives you the added benefit of serving the JS directly from your
+    # server, which in case of a big geographical difference between your server
+    # and Google's can speed things up for your visitors. Use the 
+    # 'google_analytics:update' rake task to update the local JS copies.
+    @@local_javascript = false
+    cattr_accessor :local_javascript
+    
     # Return true if the Google Analytics system is enabled and configured
     # correctly for the specified format
     def self.enabled?(format)
@@ -74,12 +82,22 @@ module Rubaidh # :nodoc:
       return legacy_google_analytics_code(ssl) if legacy_mode
 
       extra_code = domain_name.blank? ? nil : "pageTracker._setDomainName(\"#{domain_name}\");"
-
-      code = <<-HTML
+      
+      code = if local_javascript
+        <<-HTML
+        <script src="#{LocalAssetTagHelper.new.javascript_path( 'ga.js' )}" type="text/javascript">
+        </script>
+        HTML
+      else
+        <<-HTML
       <script type="text/javascript">
       var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
       document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
       </script>
+        HTML
+      end
+      
+      code << <<-HTML
       <script type="text/javascript">
       <!--//--><![CDATA[//><!--
       var pageTracker = _gat._getTracker('#{tracker_id}');
@@ -94,7 +112,7 @@ module Rubaidh # :nodoc:
     # Run the legacy version of the Google Analytics code.
     def self.legacy_google_analytics_code(ssl = false)
       extra_code = domain_name.blank? ? nil : "_udn = \"#{domain_name}\";"
-      url = ssl ? analytics_ssl_url : analytics_url
+      url = legacy_analytics_js_url(ssl)
 
       code = <<-HTML
       <script src="#{url}" type="text/javascript">
@@ -106,5 +124,19 @@ module Rubaidh # :nodoc:
       </script>
       HTML
     end
+    
+    # Generate the correct URL for the legacy Analytics JS file
+    def self.legacy_analytics_js_url(ssl = false)
+      if local_javascript
+        LocalAssetTagHelper.new.javascript_path( 'urchin.js' )
+      else
+        ssl ? analytics_ssl_url : analytics_url
+      end
+    end
+  end
+  
+  class LocalAssetTagHelper
+    # For helping with local javascripts
+    include ActionView::Helpers::AssetTagHelper
   end
 end
