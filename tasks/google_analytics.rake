@@ -34,6 +34,7 @@ end
 # end
 #	
 
+require 'net/http'
 require 'zlib'
 require 'stringio'
 
