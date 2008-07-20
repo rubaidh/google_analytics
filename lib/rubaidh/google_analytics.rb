@@ -60,7 +60,7 @@ module Rubaidh # :nodoc:
     # Set this to true if you want to load the Analytics javascript at the bottom of
     # each page rather than at the top. This may result in faster page render times, 
     # but may break link_to_tracked functionality.
-    @@defer_load = false
+    @@defer_load = true
     cattr_accessor :defer_load
     
     # Set this to true to use a local copy of the ga.js (or urchin.js) file.

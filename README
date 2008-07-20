@@ -51,6 +51,13 @@ link_to_tracked_if(condition, name, track_path = "/", options = {}, html_options
 link_to_tracked_unless(condition, name, track_path = "/", options = {}, html_options = {}, &block)
 link_to_tracked_unless_current(name, track_path = "/", options = {}, html_options = {}, &block)
 
+To track outbound links, you should set
+
+	Rubaidh::GoogleAnalytics.defer_load = false
+	
+This will move the tracking javascript to the top of your page.
+(see http://www.google.com/support/googleanalytics/bin/answer.py?answer=55527&topic=11006)
+
 Tracked links respect the legacy_mode flag.
 
 Note: Link-tracking works by inserting onclick() code in the HTML. Because of this, it will overwrite
