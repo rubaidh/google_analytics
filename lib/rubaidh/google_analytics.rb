@@ -5,10 +5,9 @@ module Rubaidh # :nodoc:
     end
     
     # An after_filter to automatically add the analytics code.
-    # Add the code at the top of the page to support calls to _trackPageView 
-    #   (see http://www.google.com/support/googleanalytics/bin/answer.py?answer=55527&topic=11006)
-    # If you're not going to use the link_to_tracked view helpers, you can set Rubaidh::GoogleAnalytics.defer_load = true
-    #  to load the codel at the bottom of the page
+    # If you intend to use the link_to_tracked view helpers, you need to set Rubaidh::GoogleAnalytics.defer_load = false
+    # to load the code at the top of the page
+    # (see http://www.google.com/support/googleanalytics/bin/answer.py?answer=55527&topic=11006)
     def add_google_analytics_code
       if GoogleAnalytics.defer_load
         response.body.sub! '</body>', "#{google_analytics_code}</body>" if response.body.respond_to?(:sub!)
@@ -20,46 +19,52 @@ module Rubaidh # :nodoc:
 
   class GoogleAnalyticsConfigurationError < StandardError; end
 
+  # The core Google Analytics functionality
   class GoogleAnalytics
-    # Specify the Google Analytics ID for this web site.  This can be found
-    # as the value of +_uacct+ in the Javascript excerpt
+  
+    # Specify the Google Analytics ID for this web site. This can be found
+    # as the value of +_getTracker+ if you are using the new (ga.js) tracking
+    # code, or the value of +_uacct+ if you are using the old (urchin.js)
+    # tracking code.
     @@tracker_id = nil
-    cattr_accessor :tracker_id
+    cattr_accessor :tracker_id # 
 
-    # Specify a different domain name from the default.  You'll want to use
+    # Specify a different domain name from the default. You'll want to use
     # this if you have several subdomains that you want to combine into
-    # one report.  See the Google Analytics documentation for more
+    # one report. See the Google Analytics documentation for more
     # information.
     @@domain_name = nil
     cattr_accessor :domain_name
 
-    # Specify whether the legacy Google Analytics code should be used.
+    # Specify whether the legacy Google Analytics code should be used. By
+    # default, the new Google Analytics code is used.
     @@legacy_mode = false
     cattr_accessor :legacy_mode
     
     # I can't see why you'd want to do this, but you can always change the
-    # analytics URL.  This is only applicable in legacy mode.
+    # analytics URL. This is only applicable in legacy mode.
     @@analytics_url = 'http://www.google-analytics.com/urchin.js'
     cattr_accessor :analytics_url
 
     # I can't see why you'd want to do this, but you can always change the
-    # analytics URL (ssl version).  This is only applicable in legacy mode.
+    # analytics URL (ssl version). This is only applicable in legacy mode.
     @@analytics_ssl_url = 'https://ssl.google-analytics.com/urchin.js'
     cattr_accessor :analytics_ssl_url
 
-    # The environments in which to enable the Google Analytics code.  Defaults
-    # to 'production' only.
+    # The environments in which to enable the Google Analytics code. Defaults
+    # to 'production' only. Supply an array of environment names to change this.
     @@environments = ['production']
     cattr_accessor :environments
     
-    # The formats for which to add.  Defaults
-    # to :html only.
+    # The formats for which to add.  Defaults to +:html+ only. Supply an array
+    # of formats to change this.
     @@formats = [:html]
     cattr_accessor :formats
 
-    # Set this to true if you want to load the Analytics javascript at the bottom of
-    # each page rather than at the top. This may result in faster page render times, 
-    # but may break link_to_tracked functionality.
+    # Set this to true (the default) if you want to load the Analytics javascript at 
+    # the bottom of page. Set this to false if you want to load the Analytics 
+    # javascript at the top of the page. The page will render faster if you set this to
+    # true, but that will break the linking functions in Rubaidh::GoogleAnalyticsViewHelper.
     @@defer_load = true
     cattr_accessor :defer_load
     
@@ -78,6 +83,8 @@ module Rubaidh # :nodoc:
       environments.include?(RAILS_ENV) && formats.include?(format.to_sym)
     end
     
+    # Construct the javascript code to be inserted on the calling page. The +ssl+
+    # parameter can be used to force the SSL version of the code in legacy mode only.
     def self.google_analytics_code(ssl = false)
       return legacy_google_analytics_code(ssl) if legacy_mode
 
@@ -109,7 +116,8 @@ module Rubaidh # :nodoc:
       HTML
     end
 
-    # Run the legacy version of the Google Analytics code.
+    # Construct the legacy version of the Google Analytics code. The +ssl+
+    # parameter specifies whether or not to return the SSL version of the code.
     def self.legacy_google_analytics_code(ssl = false)
       extra_code = domain_name.blank? ? nil : "_udn = \"#{domain_name}\";"
       url = legacy_analytics_js_url(ssl)
@@ -135,7 +143,7 @@ module Rubaidh # :nodoc:
     end
   end
   
-  class LocalAssetTagHelper
+  class LocalAssetTagHelper # :nodoc:
     # For helping with local javascripts
     include ActionView::Helpers::AssetTagHelper
   end
