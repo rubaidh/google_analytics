@@ -27,7 +27,7 @@ module Rubaidh # :nodoc:
     # code, or the value of +_uacct+ if you are using the old (urchin.js)
     # tracking code.
     @@tracker_id = nil
-    cattr_accessor :tracker_id # 
+    cattr_accessor :tracker_id  
 
     # Specify a different domain name from the default. You'll want to use
     # this if you have several subdomains that you want to combine into
@@ -141,8 +141,23 @@ module Rubaidh # :nodoc:
         ssl ? analytics_ssl_url : analytics_url
       end
     end
+    
+private  
+    # This is strictly for testability. I'd be happy to have an alternative.
+    def class_reset # :nodoc:
+      @@tracker_id = nil
+      @@domain_name = nil
+      @@legacy_mode = false
+      @@analytics_url = 'http://www.google-analytics.com/urchin.js'
+      @@analytics_ssl_url = 'https://ssl.google-analytics.com/urchin.js'
+      @@environments = ['production']
+      @@formats = [:html]
+      @@defer_load = true
+      @@local_javascript = false
+    end
+
   end
-  
+
   class LocalAssetTagHelper # :nodoc:
     # For helping with local javascripts
     include ActionView::Helpers::AssetTagHelper
