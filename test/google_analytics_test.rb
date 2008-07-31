@@ -78,5 +78,23 @@ class GoogleAnalyticsTest < Test::Unit::TestCase
     Rubaidh::GoogleAnalytics.stubs(:formats).returns([:xml])
     assert_equal(true, Rubaidh::GoogleAnalytics.enabled?(:xml))
   end
+
+  # test request_tracker_id
+  def test_request_tracker_id_without_override
+    Rubaidh::GoogleAnalytics.stubs(:tracker_id).returns("1234")
+    assert_equal("1234", Rubaidh::GoogleAnalytics.request_tracker_id)
+  end
+  
+  def test_request_tracker_id_with_override
+    Rubaidh::GoogleAnalytics.stubs(:tracker_id).returns("1234")
+    Rubaidh::GoogleAnalytics.override_tracker_id = "4567"
+    assert_equal("4567", Rubaidh::GoogleAnalytics.request_tracker_id)
+  end
+  
+  def test_request_tracker_id_resets_override
+    Rubaidh::GoogleAnalytics.stubs(:tracker_id).returns("1234")
+    foo = Rubaidh::GoogleAnalytics.request_tracker_id
+    assert_nil(Rubaidh::GoogleAnalytics.override_tracker_id)
+  end
   
 end

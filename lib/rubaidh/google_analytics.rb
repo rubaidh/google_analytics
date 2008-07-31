@@ -76,6 +76,24 @@ module Rubaidh # :nodoc:
     @@local_javascript = false
     cattr_accessor :local_javascript
     
+    # Set this to override the initialized domain name for a single render. Useful
+    # when you're serving to multiple hosts from a single codebase. Typically you'd 
+    # set up a before filter in the appropriate controller:
+    #    before_filter :override_domain_name
+    #    def override_domain_name
+    #      Rubaidh::GoogleAnalytics.override_domain_name  = 'foo.com'
+    #   end
+    cattr_accessor :override_domain_name
+    
+    # Set this to override the initialized tracker ID for a single render. Useful
+    # when you're serving to multiple hosts from a single codebase. Typically you'd 
+    # set up a before filter in the appropriate controller:
+    #    before_filter :override_tracker_id
+    #    def override_tracker_id
+    #      Rubaidh::GoogleAnalytics.override_tracker_id  = 'UA-123456-7'
+    #   end
+    cattr_accessor :override_tracker_id
+    
     # Return true if the Google Analytics system is enabled and configured
     # correctly for the specified format
     def self.enabled?(format)
@@ -89,6 +107,10 @@ module Rubaidh # :nodoc:
       return legacy_google_analytics_code(ssl) if legacy_mode
 
       extra_code = domain_name.blank? ? nil : "pageTracker._setDomainName(\"#{domain_name}\");"
+      if !override_domain_name.blank?
+        extra_code = "pageTracker._setDomainName(\"#{override_domain_name}\");"
+        self.override_domain_name = nil
+      end
       
       code = if local_javascript
         <<-HTML
@@ -107,7 +129,7 @@ module Rubaidh # :nodoc:
       code << <<-HTML
       <script type="text/javascript">
       <!--//--><![CDATA[//><!--
-      var pageTracker = _gat._getTracker('#{tracker_id}');
+      var pageTracker = _gat._getTracker('#{request_tracker_id}');
       #{extra_code}
       pageTracker._initData();
       pageTracker._trackPageview();
@@ -120,13 +142,18 @@ module Rubaidh # :nodoc:
     # parameter specifies whether or not to return the SSL version of the code.
     def self.legacy_google_analytics_code(ssl = false)
       extra_code = domain_name.blank? ? nil : "_udn = \"#{domain_name}\";"
+      if !override_domain_name.blank?
+        extra_code = "_udn = \"#{override_domain_name}\";"
+        self.override_domain_name = nil
+      end
+
       url = legacy_analytics_js_url(ssl)
 
       code = <<-HTML
       <script src="#{url}" type="text/javascript">
       </script>
       <script type="text/javascript">
-      _uacct = "#{tracker_id}";
+      _uacct = "#{request_tracker_id}";
       #{extra_code}
       urchinTracker();
       </script>
@@ -140,6 +167,13 @@ module Rubaidh # :nodoc:
       else
         ssl ? analytics_ssl_url : analytics_url
       end
+    end
+
+    # Determine the tracker ID for this request
+    def self.request_tracker_id
+      use_tracker_id = override_tracker_id.blank? ? tracker_id : override_tracker_id
+      self.override_tracker_id = nil
+      use_tracker_id
     end
     
   end
