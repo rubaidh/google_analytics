@@ -142,20 +142,6 @@ module Rubaidh # :nodoc:
       end
     end
     
-private  
-    # This is strictly for testability. I'd be happy to have an alternative.
-    def class_reset # :nodoc:
-      @@tracker_id = nil
-      @@domain_name = nil
-      @@legacy_mode = false
-      @@analytics_url = 'http://www.google-analytics.com/urchin.js'
-      @@analytics_ssl_url = 'https://ssl.google-analytics.com/urchin.js'
-      @@environments = ['production']
-      @@formats = [:html]
-      @@defer_load = true
-      @@local_javascript = false
-    end
-
   end
 
   class LocalAssetTagHelper # :nodoc:

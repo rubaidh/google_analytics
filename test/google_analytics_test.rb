@@ -1,10 +1,11 @@
 require File.dirname(__FILE__) + '/test_helper.rb'
 require 'test/unit'
+require 'rubygems'
+require 'mocha'
 
 class GoogleAnalyticsTest < Test::Unit::TestCase
   def setup
     @ga = Rubaidh::GoogleAnalytics.new
-    @ga.send('class_reset')
     @ga.tracker_id = "the tracker id"
   end
   
@@ -49,12 +50,12 @@ class GoogleAnalyticsTest < Test::Unit::TestCase
   
   # test self.enabled
   def test_enabled_requires_tracker_id
-    @ga.tracker_id = nil
+    Rubaidh::GoogleAnalytics.stubs(:tracker_id).returns(nil)
     assert_raise(Rubaidh::GoogleAnalyticsConfigurationError) { Rubaidh::GoogleAnalytics.enabled?(:html) }
   end
   
   def test_enabled_requires_analytics_url
-    @ga.analytics_url = nil
+    Rubaidh::GoogleAnalytics.stubs(:analytics_url).returns(nil)
     assert_raise(Rubaidh::GoogleAnalyticsConfigurationError) { Rubaidh::GoogleAnalytics.enabled?(:html) }
   end
   
@@ -63,18 +64,18 @@ class GoogleAnalyticsTest < Test::Unit::TestCase
   end
   
   def test_enabled_with_default_format
-    @ga.environments << 'test'
+    Rubaidh::GoogleAnalytics.stubs(:environments).returns(['test'])
     assert_equal(true, Rubaidh::GoogleAnalytics.enabled?(:html))
   end
   
   def test_enabled_with_not_included_format
-    @ga.environments << 'test'
+    Rubaidh::GoogleAnalytics.stubs(:environments).returns(['test'])
     assert_equal(false, Rubaidh::GoogleAnalytics.enabled?(:xml))
   end
   
   def test_enabled_with_added_format
-    @ga.environments << 'test'
-    @ga.formats << :xml
+    Rubaidh::GoogleAnalytics.stubs(:environments).returns(['test'])
+    Rubaidh::GoogleAnalytics.stubs(:formats).returns([:xml])
     assert_equal(true, Rubaidh::GoogleAnalytics.enabled?(:xml))
   end
   
