@@ -92,9 +92,26 @@ class GoogleAnalyticsTest < Test::Unit::TestCase
   end
   
   def test_request_tracker_id_resets_override
+    Rubaidh::GoogleAnalytics.override_tracker_id = "4567"
     Rubaidh::GoogleAnalytics.stubs(:tracker_id).returns("1234")
     foo = Rubaidh::GoogleAnalytics.request_tracker_id
     assert_nil(Rubaidh::GoogleAnalytics.override_tracker_id)
+  end
+  
+  # test request_tracked_path
+  def test_request_tracked_path_without_override
+    assert_equal('', Rubaidh::GoogleAnalytics.request_tracked_path)
+  end
+  
+  def test_request_tracked_path_with_override
+    Rubaidh::GoogleAnalytics.override_trackpageview = "/my/path"
+    assert_equal("'/my/path'", Rubaidh::GoogleAnalytics.request_tracked_path)
+  end
+  
+  def test_request_tracked_path_resets_override
+    Rubaidh::GoogleAnalytics.override_trackpageview = "/my/path"
+    foo = Rubaidh::GoogleAnalytics.request_tracked_path
+    assert_nil(Rubaidh::GoogleAnalytics.override_trackpageview)
   end
   
 end

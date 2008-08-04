@@ -94,6 +94,14 @@ module Rubaidh # :nodoc:
     #   end
     cattr_accessor :override_tracker_id
     
+    # Set this to override the automatically generated path to the page in the
+    # Google Analytics reports for a single render. Typically you'd set this up on a 
+    # controller-by-controller basis:
+    #    def show
+    #      Rubaidh::GoogleAnalytics.override_trackpageview = "path_to_report"
+    #      ...
+    cattr_accessor :override_trackpageview
+    
     # Return true if the Google Analytics system is enabled and configured
     # correctly for the specified format
     def self.enabled?(format)
@@ -132,7 +140,7 @@ module Rubaidh # :nodoc:
       var pageTracker = _gat._getTracker('#{request_tracker_id}');
       #{extra_code}
       pageTracker._initData();
-      pageTracker._trackPageview();
+      pageTracker._trackPageview(#{request_tracked_path});
       //--><!]]>
       </script>
       HTML
@@ -155,7 +163,7 @@ module Rubaidh # :nodoc:
       <script type="text/javascript">
       _uacct = "#{request_tracker_id}";
       #{extra_code}
-      urchinTracker();
+      urchinTracker(#{request_tracked_path});
       </script>
       HTML
     end
@@ -174,6 +182,13 @@ module Rubaidh # :nodoc:
       use_tracker_id = override_tracker_id.blank? ? tracker_id : override_tracker_id
       self.override_tracker_id = nil
       use_tracker_id
+    end
+    
+    # Determine the path to report for this request
+    def self.request_tracked_path
+      use_tracked_path = override_trackpageview.blank? ? '' : "'#{override_trackpageview}'"
+      self.override_trackpageview = nil
+      use_tracked_path
     end
     
   end
