@@ -99,3 +99,19 @@ configuration:
 
 The above Capistrano recipe will almost certainly need some adjustments based
 on how you run your deployments, but you should get the idea.
+
+OVERRIDING APPLICATION-WIDE VALUES
+
+If you're using one Rails application to serve pages across multiple domains, you
+may wish to override the domain and tracker ID values on a controller-by-controller or 
+view-by-view basis. You can do this by setting the override_domain_name and 
+override_tracker_id properties. These properties are automatically reset after
+each use, so the values you set for domain_name and tracker_id (usually in an
+initializer) will apply to all other requests.
+
+before_filter :local_analytics
+
+def local_analytics
+  Rubaidh::GoogleAnalytics.override_domain_name  = 'foo.com'
+  Rubaidh::GoogleAnalytics.override_tracker_id  = 'UA-123456-7'
+end
