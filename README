@@ -115,3 +115,5 @@ def local_analytics
   Rubaidh::GoogleAnalytics.override_domain_name  = 'foo.com'
   Rubaidh::GoogleAnalytics.override_tracker_id  = 'UA-123456-7'
 end
+
+See the documentation for the GoogleAnalytics class for other configuration options.
