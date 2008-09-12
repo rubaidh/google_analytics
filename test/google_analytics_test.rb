@@ -2,6 +2,7 @@ require File.dirname(__FILE__) + '/test_helper.rb'
 require 'test/unit'
 require 'rubygems'
 require 'mocha'
+RAILS_ENV = 'test'
 
 class GoogleAnalyticsTest < Test::Unit::TestCase
   def setup
@@ -60,6 +61,7 @@ class GoogleAnalyticsTest < Test::Unit::TestCase
   end
   
   def test_enabled_returns_false_if_current_environment_not_enabled
+    Rubaidh::GoogleAnalytics.stubs(:environments).returns(['production'])
     assert_equal(false, Rubaidh::GoogleAnalytics.enabled?(:html))
   end
   

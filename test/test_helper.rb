@@ -1,10 +1,10 @@
 ENV['RAILS_ENV'] = 'test'
-ENV['RAILS_ROOT'] ||= File.dirname(__FILE__) + '/../../../..'
 
+require 'rubygems'
 require 'test/unit'
-require File.expand_path(File.join(ENV['RAILS_ROOT'], 'config/environment.rb'))
+require 'action_controller'
+require 'active_record'
 
-#config = YAML::load(IO.read(File.dirname(__FILE__) + '/database.yml'))
-ActiveRecord::Base.logger = Logger.new(File.dirname(__FILE__) + "/debug.log")
+require File.expand_path(File.dirname(__FILE__) + '/../lib/rubaidh/google_analytics.rb')
+require File.expand_path(File.dirname(__FILE__) + '/../lib/rubaidh/view_helpers.rb')
 
-db_adapter = ENV['DB']

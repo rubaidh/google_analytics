@@ -117,3 +117,5 @@ def local_analytics
 end
 
 See the documentation for the GoogleAnalytics class for other configuration options.
+
+Note: You will need to have the mocha gem installed to run the tests for this plugin.
