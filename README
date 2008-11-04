@@ -1,7 +1,7 @@
 GoogleAnalytics
 ===============
 
-This is a quick 'n' dirty module to easily enable Google Analytics support
+This plugin enables Google Analytics support
 in your application.  By default it'll output the analytics code for every
 single page automatically, if it's configured correctly.  This is done by
 adding:
