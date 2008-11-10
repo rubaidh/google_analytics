@@ -120,3 +120,5 @@ options.
 
 Note: You will need to have the mocha gem installed to run the tests for this
 plugin.
+
+Copyright (c) 2006-2008 Rubaidh Ltd, released under the MIT license.
