@@ -16,7 +16,7 @@ spec = Gem::Specification.new do |s|
                   'This can be discovered by looking at the value assigned to +_uacct+' +
                   'in the Javascript code.'
   
-  s.files = %w( README Rakefile rails/init.rb
+  s.files = %w( README.rdoc Rakefile rails/init.rb
                 test/google_analytics_test.rb
                 test/test_helper.rb
                 test/view_helpers_test.rb
