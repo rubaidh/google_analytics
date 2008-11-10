@@ -1,5 +1,9 @@
 module Rubaidh # :nodoc:
+  # This module gets mixed in to ActionController::Base
   module GoogleAnalyticsMixin
+    # The javascript code to enable Google Analytics on the current page.
+    # Normally you won't need to call this directly; the +add_google_analytics_code+
+    # after filter will insert it for you.
     def google_analytics_code
       GoogleAnalytics.google_analytics_code(request.ssl?) if GoogleAnalytics.enabled?(request.format)
     end
@@ -21,122 +25,114 @@ module Rubaidh # :nodoc:
 
   # The core functionality to connect a Rails application
   # to a Google Analytics installation.
-  #
-  # The +GoogleAnalytics+ class has a variety of class attributes for configuration:
-  #
-  # * tracker_id (required)
-  # 
-  # Specify the Google Analytics ID for this web site. This can be found
-  # as the value of +_getTracker+ if you are using the new (ga.js) tracking
-  # code, or the value of +_uacct+ if you are using the old (urchin.js)
-  # tracking code.
-  #
-  # * domain_name
-  #
-  # Specify a different domain name from the default. You'll want to use
-  # this if you have several subdomains that you want to combine into
-  # one report. See the Google Analytics documentation for more
-  # information.
-  #
-  # * legacy_mode
-  #
-  # Specify whether the legacy Google Analytics code should be used. By
-  # default, the new Google Analytics code is used.
-  #
-  # * analytics_url
-  #
-  # I can't see why you'd want to do this, but you can always change the
-  # analytics URL. This is only applicable in legacy mode.
-  #
-  # * analytics_ssl_url
-  #
-  # I can't see why you'd want to do this, but you can always change the
-  # analytics URL (ssl version). This is only applicable in legacy mode.
-  #
-  # * environments
-  #
-  # The environments in which to enable the Google Analytics code. Defaults
-  # to 'production' only. Supply an array of environment names to change this.
-  #
-  # * formats
-  #
-  # The formats for which to add.  Defaults to +:html+ only. Supply an array
-  # of formats to change this.
-  #
-  # * defer_load
-  #
-  # Set this to true (the default) if you want to load the Analytics javascript at 
-  # the bottom of page. Set this to false if you want to load the Analytics 
-  # javascript at the top of the page. The page will render faster if you set this to
-  # true, but that will break the linking functions in Rubaidh::GoogleAnalyticsViewHelper.
-  #
-  # * local_javascript
-  #
-  # Set this to true to use a local copy of the ga.js (or urchin.js) file.
-  # This gives you the added benefit of serving the JS directly from your
-  # server, which in case of a big geographical difference between your server
-  # and Google's can speed things up for your visitors. Use the 
-  # 'google_analytics:update' rake task to update the local JS copies.
-  #
-  # * override_domain_name
-  #
-  # Set this to override the initialized domain name for a single render. Useful
-  # when you're serving to multiple hosts from a single codebase. Typically you'd 
-  # set up a before filter in the appropriate controller:
-  #    before_filter :override_domain_name
-  #    def override_domain_name
-  #      Rubaidh::GoogleAnalytics.override_domain_name  = 'foo.com'
-  #   end
-  #
-  # * override_tracker_id
-  #
-  # Set this to override the initialized tracker ID for a single render. Useful
-  # when you're serving to multiple hosts from a single codebase. Typically you'd 
-  # set up a before filter in the appropriate controller:
-  #    before_filter :override_tracker_id
-  #    def override_tracker_id
-  #      Rubaidh::GoogleAnalytics.override_tracker_id  = 'UA-123456-7'
-  #   end
-  #
-  # * override_trackpageview
-  #
-  # Set this to override the automatically generated path to the page in the
-  # Google Analytics reports for a single render. Typically you'd set this up on a 
-  # controller-by-controller basis:
-  #    def show
-  #      Rubaidh::GoogleAnalytics.override_trackpageview = "path_to_report"
-  #      ...
   class GoogleAnalytics
   
     @@tracker_id = nil
+    ##
+    # :singleton-method:
+    # Specify the Google Analytics ID for this web site. This can be found
+    # as the value of +_getTracker+ if you are using the new (ga.js) tracking
+    # code, or the value of +_uacct+ if you are using the old (urchin.js)
+    # tracking code.
     cattr_accessor :tracker_id  
 
     @@domain_name = nil
+    ##
+    # :singleton-method:
+    # Specify a different domain name from the default. You'll want to use
+    # this if you have several subdomains that you want to combine into
+    # one report. See the Google Analytics documentation for more
+    # information.
     cattr_accessor :domain_name
 
     @@legacy_mode = false
+    ##
+    # :singleton-method:
+    # Specify whether the legacy Google Analytics code should be used. By
+    # default, the new Google Analytics code is used.
     cattr_accessor :legacy_mode
     
     @@analytics_url = 'http://www.google-analytics.com/urchin.js'
+    ##
+    # :singleton-method:
+    # The URL that analytics information is sent to. This defaults to the
+    # standard Google Analytics URL, and you're unlikely to need to change it.
+    # This has no effect unless you're in legacy mode.
     cattr_accessor :analytics_url
 
     @@analytics_ssl_url = 'https://ssl.google-analytics.com/urchin.js'
+    ##
+    # :singleton-method:
+    # The URL that analytics information is sent to when using SSL. This defaults to the
+    # standard Google Analytics URL, and you're unlikely to need to change it.
+    # This has no effect unless you're in legacy mode.
     cattr_accessor :analytics_ssl_url
 
     @@environments = ['production']
+    ##
+    # :singleton-method:
+    # The environments in which to enable the Google Analytics code. Defaults
+    # to 'production' only. Supply an array of environment names to change this.
     cattr_accessor :environments
     
-    @@formats = [:html]
+    @@formats = [:html, :all]
+    ##
+    # :singleton-method:
+    # The request formats where tracking code should be added. Defaults to +[:html, :all]+. The entry for
+    # +:all+ is necessary to make Google recognize that tracking is installed on a
+    # site; it is not the same as responding to all requests. Supply an array
+    # of formats to change this.
     cattr_accessor :formats
 
     @@defer_load = true
+    ##
+    # :singleton-method:
+    # Set this to true (the default) if you want to load the Analytics javascript at 
+    # the bottom of page. Set this to false if you want to load the Analytics 
+    # javascript at the top of the page. The page will render faster if you set this to
+    # true, but that will break the linking functions in Rubaidh::GoogleAnalyticsViewHelper.
     cattr_accessor :defer_load
     
     @@local_javascript = false
+    ##
+    # :singleton-method:
+    # Set this to true to use a local copy of the ga.js (or urchin.js) file.
+    # This gives you the added benefit of serving the JS directly from your
+    # server, which in case of a big geographical difference between your server
+    # and Google's can speed things up for your visitors. Use the 
+    # 'google_analytics:update' rake task to update the local JS copies.
     cattr_accessor :local_javascript
     
+    ##
+    # :singleton-method:
+    # Set this to override the initialized domain name for a single render. Useful
+    # when you're serving to multiple hosts from a single codebase. Typically you'd 
+    # set up a before filter in the appropriate controller:
+    #    before_filter :override_domain_name
+    #    def override_domain_name
+    #      Rubaidh::GoogleAnalytics.override_domain_name  = 'foo.com'
+    #   end
     cattr_accessor :override_domain_name
+    
+    ##
+    # :singleton-method:
+    # Set this to override the initialized tracker ID for a single render. Useful
+    # when you're serving to multiple hosts from a single codebase. Typically you'd 
+    # set up a before filter in the appropriate controller:
+    #    before_filter :override_tracker_id
+    #    def override_tracker_id
+    #      Rubaidh::GoogleAnalytics.override_tracker_id  = 'UA-123456-7'
+    #   end
     cattr_accessor :override_tracker_id
+    
+    ##
+    # :singleton-method:
+    # Set this to override the automatically generated path to the page in the
+    # Google Analytics reports for a single render. Typically you'd set this up on an 
+    # action-by-action basis:
+    #    def show
+    #      Rubaidh::GoogleAnalytics.override_trackpageview = "path_to_report"
+    #      ...
     cattr_accessor :override_trackpageview
     
     # Return true if the Google Analytics system is enabled and configured
