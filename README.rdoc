@@ -1,8 +1,8 @@
 = GoogleAnalytics
 
 This plugin enables Google Analytics support in your application. By default
-it'll output the analytics code for every single page automatically, if it's
-configured correctly. This is done by adding:
+it will output the analytics code for every single page automatically, if it
+is configured correctly. This is done by adding:
 
     Rubaidh::GoogleAnalytics.tracker_id = 'UA-12345-67'
 
