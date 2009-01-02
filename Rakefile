@@ -1,6 +1,7 @@
 require 'rake'
 require 'rake/testtask'
 require 'rake/rdoctask'
+require 'rake/gempackagetask'
 
 desc 'Default: run unit tests.'
 task :default => :test
@@ -19,4 +20,9 @@ Rake::RDocTask.new(:rdoc) do |rdoc|
   rdoc.options << '--line-numbers' << '--inline-source'
   rdoc.rdoc_files.include('README.rdoc')
   rdoc.rdoc_files.include('lib/**/*.rb')
+end
+
+Rake::GemPackageTask.new(eval(File.read('google_analytics.gemspec'))) do |p|
+  p.need_tar = false
+  p.need_zip = false
 end
