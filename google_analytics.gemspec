@@ -20,6 +20,7 @@ spec = Gem::Specification.new do |s|
                 test/google_analytics_test.rb
                 test/test_helper.rb
                 test/view_helpers_test.rb
+                lib/rubaidh.rb
                 lib/rubaidh/google_analytics.rb
                 lib/rubaidh/view_helpers.rb
                 tasks/google_analytics.rake)
