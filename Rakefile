@@ -36,5 +36,5 @@ desc 'Package and upload the release to rubyforge.'
 task :release => [:clean, :package] do |t|
   rubyforge = RubyForge.new.configure
   rubyforge.login
-  rubyforge.add_release gem_spec.rubyforge_project, gem_spec.name, gem_spec.version, "pkg/#{gem_spec.name}-#{gem_spec.version}.gem"
+  rubyforge.add_release gem_spec.rubyforge_project, gem_spec.name, gem_spec.version.to_s, "pkg/#{gem_spec.name}-#{gem_spec.version}.gem"
 end
