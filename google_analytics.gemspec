@@ -1,12 +1,13 @@
 spec = Gem::Specification.new do |s|
-  s.name        = 'google_analytics'
-  s.version     = '1.1.1'
-  s.date        = "2009-01-02"
-  s.author      = 'Graeme Mathieson'
-  s.email       = 'mathie@rubaidh.com'
-  s.has_rdoc    = true
-  s.homepage    = 'http://rubaidh.com/portfolio/open-source/google-analytics/'
-  s.summary     = "[Rails] Easily enable Google Analytics support in your Rails application."
+  s.name              = 'google_analytics'
+  s.version           = '1.1.1'
+  s.date              = "2009-01-02"
+  s.author            = 'Graeme Mathieson'
+  s.email             = 'mathie@rubaidh.com'
+  s.has_rdoc          = true
+  s.rubyforge_project = "rubaidh"
+  s.homepage          = 'http://rubaidh.com/portfolio/open-source/google-analytics/'
+  s.summary           = "[Rails] Easily enable Google Analytics support in your Rails application."
 
   s.description = 'By default this gem will output google analytics code for' +
                   "every page automatically, if it's configured correctly." +
