@@ -1,3 +1,7 @@
+require 'active_support'
+require 'action_pack'
+require 'action_view'
+
 module Rubaidh # :nodoc:
   # This module gets mixed in to ActionController::Base
   module GoogleAnalyticsMixin
