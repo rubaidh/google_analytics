@@ -174,10 +174,12 @@ module Rubaidh # :nodoc:
       code << <<-HTML
       <script type="text/javascript">
       <!--//--><![CDATA[//><!--
+      try {
       var pageTracker = _gat._getTracker('#{request_tracker_id}');
       #{extra_code}
       pageTracker._initData();
       pageTracker._trackPageview(#{request_tracked_path});
+      } catch(err) {}
       //--><!]]>
       </script>
       HTML
