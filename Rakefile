@@ -38,3 +38,13 @@ task :release => [:clean, :package] do |t|
   rubyforge.login
   rubyforge.add_release gem_spec.rubyforge_project, gem_spec.name, gem_spec.version.to_s, "pkg/#{gem_spec.name}-#{gem_spec.version}.gem"
 end
+
+begin
+  require 'rcov/rcovtask'
+  Rcov::RcovTask.new do |t|
+    t.test_files = FileList["test/**/*_test.rb"]
+    t.verbose = true
+    t.rcov_opts = ["-x", "^/"]
+  end
+rescue LoadError
+end
