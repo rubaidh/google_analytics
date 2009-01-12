@@ -47,7 +47,11 @@ begin
     t.rcov_opts = ["-x", "^/"]
   end
 
-  task :cruise => [ :rcov ]
+  task :cruise => [ :rcov ] do
+    if File.directory?("coverage") &&  File.directory?(ENV['CC_BUILD_ARTIFACTS'])
+      FileUtils.mv "coverage", "#{ENV['CC_BUILD_ARTIFACTS']}/coverage"
+    end
+  end
 rescue LoadError
   task :cruise => [ :default ]
 end
