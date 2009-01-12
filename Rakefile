@@ -46,5 +46,8 @@ begin
     t.verbose = true
     t.rcov_opts = ["-x", "^/"]
   end
+
+  task :cruise => [ :rcov ]
 rescue LoadError
+  task :cruise => [ :default ]
 end
