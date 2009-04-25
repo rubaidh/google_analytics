@@ -18,9 +18,9 @@ module Rubaidh # :nodoc:
     # (see http://www.google.com/support/googleanalytics/bin/answer.py?answer=55527&topic=11006)
     def add_google_analytics_code
       if GoogleAnalytics.defer_load
-        response.body.sub! '</body>', "#{google_analytics_code}</body>" if response.body.respond_to?(:sub!)
+        response.body.sub! /<\/body>/i, "#{google_analytics_code}</body>" if response.body.respond_to?(:sub!)
       else
-        response.body.sub! '<body>', "<body>#{google_analytics_code}" if response.body.respond_to?(:sub!)
+        response.body.sub! /<body>/i, "<body>#{google_analytics_code}" if response.body.respond_to?(:sub!)
       end
     end
   end
