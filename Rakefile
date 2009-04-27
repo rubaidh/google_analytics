@@ -2,6 +2,7 @@ require 'rake'
 require 'rake/testtask'
 require 'rake/rdoctask'
 require 'rake/gempackagetask'
+require 'rcov/rcovtask'
 require 'rubyforge'
 
 desc 'Default: run unit tests.'
@@ -14,6 +15,12 @@ Rake::TestTask.new(:test) do |t|
   t.libs << 'lib'
   t.pattern = 'test/**/*_test.rb'
   t.verbose = true
+end
+
+Rcov::RcovTask.new do |t|
+  t.test_files = FileList["test/**/*_test.rb"]
+  t.verbose = true
+  t.rcov_opts = ["-x", "^/"]
 end
 
 desc 'Generate documentation for the google_analytics plugin.'
@@ -39,19 +46,5 @@ task :release => [:clean, :package] do |t|
   rubyforge.add_release gem_spec.rubyforge_project, gem_spec.name, gem_spec.version.to_s, "pkg/#{gem_spec.name}-#{gem_spec.version}.gem"
 end
 
-begin
-  require 'rcov/rcovtask'
-  Rcov::RcovTask.new do |t|
-    t.test_files = FileList["test/**/*_test.rb"]
-    t.verbose = true
-    t.rcov_opts = ["-x", "^/"]
-  end
-
-  task :cruise => [ :rcov ] do
-    if File.directory?("coverage") &&  File.directory?(ENV['CC_BUILD_ARTIFACTS'])
-      FileUtils.mv "coverage", "#{ENV['CC_BUILD_ARTIFACTS']}/coverage"
-    end
-  end
-rescue LoadError
-  task :cruise => [ :default ]
+task :bamboo => [ :package, :rcov ] do
 end
