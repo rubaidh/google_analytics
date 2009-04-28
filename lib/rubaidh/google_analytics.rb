@@ -20,7 +20,7 @@ module Rubaidh # :nodoc:
       if GoogleAnalytics.defer_load
         response.body.sub! /<\/[bB][oO][dD][yY]>/, "#{google_analytics_code}</body>" if response.body.respond_to?(:sub!)
       else
-        response.body.sub! /<[bB][oO][dD][yY]>/, "<body>#{google_analytics_code}" if response.body.respond_to?(:sub!)
+        response.body.sub! /(<[bB][oO][dD][yY][^>]*>)/, "\\1#{google_analytics_code}" if response.body.respond_to?(:sub!)
       end
     end
   end
