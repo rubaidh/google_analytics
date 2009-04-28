@@ -4,6 +4,29 @@ require 'rubygems'
 require 'mocha'
 RAILS_ENV = 'test'
 
+class TestMixin
+  class MockRequest
+    attr_accessor :format
+  end
+  class MockResponse
+    attr_accessor :body
+  end
+
+  include Rubaidh::GoogleAnalyticsMixin
+  attr_accessor :request, :response
+
+  def initialize
+    self.request = MockRequest.new
+    self.response = MockResponse.new
+  end
+
+  # override the mixin's method
+  def google_analytics_code
+    "Google Code"
+  end
+end
+
+
 class GoogleAnalyticsTest < Test::Unit::TestCase
   def setup
     @ga = Rubaidh::GoogleAnalytics.new
@@ -115,5 +138,45 @@ class GoogleAnalyticsTest < Test::Unit::TestCase
     foo = Rubaidh::GoogleAnalytics.request_tracked_path
     assert_nil(Rubaidh::GoogleAnalytics.override_trackpageview)
   end
-  
+
+  # Test the before_filter method does what we expect by subsituting the body tags and inserting
+  # some google code for us automagically.
+  def test_add_google_analytics_code
+    # setup our test mixin
+    mixin = TestMixin.new
+
+    # bog standard body tag
+    Rubaidh::GoogleAnalytics.defer_load = false
+    mixin.response.body = "<body><p>some text</p></body>"
+    mixin.add_google_analytics_code
+    assert_equal mixin.response.body, '<body>Google Code<p>some text</p></body>'
+
+    Rubaidh::GoogleAnalytics.defer_load = true
+    mixin.response.body = "<body><p>some text</p></body>"
+    mixin.add_google_analytics_code
+    assert_equal mixin.response.body, '<body><p>some text</p>Google Code</body>'
+
+    # body tag upper cased (ignoring this is semantically incorrect)
+    Rubaidh::GoogleAnalytics.defer_load = false
+    mixin.response.body = "<BODY><p>some text</p></BODY>"
+    mixin.add_google_analytics_code
+    assert_equal mixin.response.body, '<BODY>Google Code<p>some text</p></BODY>'
+
+    Rubaidh::GoogleAnalytics.defer_load = true
+    mixin.response.body = "<BODY><p>some text</p></BODY>"
+    mixin.add_google_analytics_code
+    assert_equal mixin.response.body, '<BODY><p>some text</p>Google Code</body>'
+
+    # body tag has additional attributes
+    Rubaidh::GoogleAnalytics.defer_load = false
+    mixin.response.body = '<body style="background-color:red"><p>some text</p></body>'
+    mixin.add_google_analytics_code
+    assert_equal mixin.response.body, '<body style="background-color:red">Google Code<p>some text</p></body>'
+
+    Rubaidh::GoogleAnalytics.defer_load = true
+    mixin.response.body = '<body style="background-color:red"><p>some text</p></body>'
+    mixin.add_google_analytics_code
+    assert_equal mixin.response.body, '<body style="background-color:red"><p>some text</p>Google Code</body>'
+  end
+
 end
