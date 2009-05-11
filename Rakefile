@@ -26,9 +26,9 @@ end
 desc 'Generate documentation for the google_analytics plugin.'
 Rake::RDocTask.new(:rdoc) do |rdoc|
   rdoc.rdoc_dir = 'rdoc'
-  rdoc.title    = 'GoogleAnalytics'
-  rdoc.options << '--line-numbers' << '--inline-source'
-  rdoc.rdoc_files.include('README.rdoc')
+  rdoc.title    = 'Google Analytics'
+  rdoc.options << '--line-numbers' << '--inline-source' << '--main' << 'README.rdoc'
+  rdoc.rdoc_files << 'README.rdoc' << 'CHANGELOG' << 'CREDITS' << 'MIT-LICENSE'
   rdoc.rdoc_files.include('lib/**/*.rb')
 end
 
