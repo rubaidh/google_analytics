@@ -46,5 +46,11 @@ task :release => [:clean, :package] do |t|
   rubyforge.add_release gem_spec.rubyforge_project, gem_spec.name, gem_spec.version.to_s, "pkg/#{gem_spec.name}-#{gem_spec.version}.gem"
 end
 
-task :bamboo => [ :package, :rcov ] do
+begin
+  gem 'ci_reporter'
+  require 'ci/reporter/rake/test_unit'
+  task :bamboo => "ci:setup:testunit"
+rescue LoadError
 end
+
+task :bamboo => [ :package, :test ]
