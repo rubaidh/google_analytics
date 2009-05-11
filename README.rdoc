@@ -21,7 +21,7 @@ If you are running rails 2.1 or above add install this by adding:
 
 and run:
 
-    rake gems:install
+    rake gems:unpack
 
 Simple. :-)
 
