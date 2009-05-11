@@ -76,7 +76,7 @@ JavaScript files, updated via a rake task and served courtesy of the Rails
 AssetTagHelper methods. So even if you use asset hosts, the JS will be served
 from the correct source and under the correct protocol (HTTP/HTTPS).
 
-To enable cached copies and the following to your initialization code:
+To enable cached copies add the following to your initialization code:
 
     Rubaidh::GoogleAnalytics.local_javascript = true
 
