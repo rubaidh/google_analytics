@@ -1,0 +1,12 @@
+= 1.1.5
+
+* Tidy up documentation a little.
+* Wrap the generated JS code in an exception-catching block, just in case.
+* Start keeping a CHANGELOG!
+
+= 1.1.4
+
+This version was never properly released as a gem on Rubyforge.  Oops.
+
+* Be careful to retain body tag attributes.
+* Allow the body tags to be in uppercase.  We won't judge. :)
