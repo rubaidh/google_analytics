@@ -8,19 +8,20 @@ module Rubaidh # :nodoc:
     # The javascript code to enable Google Analytics on the current page.
     # Normally you won't need to call this directly; the +add_google_analytics_code+
     # after filter will insert it for you.
-    def google_analytics_code
-      GoogleAnalytics.google_analytics_code(request.ssl?) if GoogleAnalytics.enabled?(request.format)
+    def google_analytics_code(opt = {})
+      options = {:ssl => request.ssl?}.merge(opt)
+      GoogleAnalytics.google_analytics_code(options) if GoogleAnalytics.enabled?(request.format)
     end
-    
+
     # An after_filter to automatically add the analytics code.
     # If you intend to use the link_to_tracked view helpers, you need to set Rubaidh::GoogleAnalytics.defer_load = false
     # to load the code at the top of the page
     # (see http://www.google.com/support/googleanalytics/bin/answer.py?answer=55527&topic=11006)
-    def add_google_analytics_code
+    def add_google_analytics_code(options = {})
       if GoogleAnalytics.defer_load
-        response.body.sub! /<\/[bB][oO][dD][yY]>/, "#{google_analytics_code}</body>" if response.body.respond_to?(:sub!)
+        append_to_body(/<\/body>/i, "#{google_analytics_code(options)}</body>")
       else
-        response.body.sub! /(<[bB][oO][dD][yY][^>]*>)/, "\\1#{google_analytics_code}" if response.body.respond_to?(:sub!)
+        append_to_body(/(<body[^>]*>)/i, "\\1#{google_analytics_code(options)}")
       end
     end
   end
@@ -30,7 +31,7 @@ module Rubaidh # :nodoc:
   # The core functionality to connect a Rails application
   # to a Google Analytics installation.
   class GoogleAnalytics
-  
+
     @@tracker_id = nil
     ##
     # :singleton-method:
@@ -38,7 +39,7 @@ module Rubaidh # :nodoc:
     # as the value of +_getTracker+ if you are using the new (ga.js) tracking
     # code, or the value of +_uacct+ if you are using the old (urchin.js)
     # tracking code.
-    cattr_accessor :tracker_id  
+    cattr_accessor :tracker_id
 
     @@domain_name = nil
     ##
@@ -55,7 +56,7 @@ module Rubaidh # :nodoc:
     # Specify whether the legacy Google Analytics code should be used. By
     # default, the new Google Analytics code is used.
     cattr_accessor :legacy_mode
-    
+
     @@analytics_url = 'http://www.google-analytics.com/urchin.js'
     ##
     # :singleton-method:
@@ -78,7 +79,7 @@ module Rubaidh # :nodoc:
     # The environments in which to enable the Google Analytics code. Defaults
     # to 'production' only. Supply an array of environment names to change this.
     cattr_accessor :environments
-    
+
     @@formats = [:html, :all]
     ##
     # :singleton-method:
@@ -88,132 +89,166 @@ module Rubaidh # :nodoc:
     # of formats to change this.
     cattr_accessor :formats
 
-    @@defer_load = true
+    @@defer_load = false
     ##
     # :singleton-method:
-    # Set this to true (the default) if you want to load the Analytics javascript at 
-    # the bottom of page. Set this to false if you want to load the Analytics 
+    # Set this to true (the default) if you want to load the Analytics javascript at
+    # the bottom of page. Set this to false if you want to load the Analytics
     # javascript at the top of the page. The page will render faster if you set this to
     # true, but that will break the linking functions in Rubaidh::GoogleAnalyticsViewHelper.
     cattr_accessor :defer_load
-    
+
     @@local_javascript = false
     ##
     # :singleton-method:
     # Set this to true to use a local copy of the ga.js (or urchin.js) file.
     # This gives you the added benefit of serving the JS directly from your
     # server, which in case of a big geographical difference between your server
-    # and Google's can speed things up for your visitors. Use the 
+    # and Google's can speed things up for your visitors. Use the
     # 'google_analytics:update' rake task to update the local JS copies.
     cattr_accessor :local_javascript
-    
+
     ##
     # :singleton-method:
     # Set this to override the initialized domain name for a single render. Useful
-    # when you're serving to multiple hosts from a single codebase. Typically you'd 
+    # when you're serving to multiple hosts from a single codebase. Typically you'd
     # set up a before filter in the appropriate controller:
     #    before_filter :override_domain_name
     #    def override_domain_name
     #      Rubaidh::GoogleAnalytics.override_domain_name  = 'foo.com'
     #   end
     cattr_accessor :override_domain_name
-    
+
     ##
     # :singleton-method:
     # Set this to override the initialized tracker ID for a single render. Useful
-    # when you're serving to multiple hosts from a single codebase. Typically you'd 
+    # when you're serving to multiple hosts from a single codebase. Typically you'd
     # set up a before filter in the appropriate controller:
     #    before_filter :override_tracker_id
     #    def override_tracker_id
     #      Rubaidh::GoogleAnalytics.override_tracker_id  = 'UA-123456-7'
     #   end
     cattr_accessor :override_tracker_id
-    
+
     ##
     # :singleton-method:
     # Set this to override the automatically generated path to the page in the
-    # Google Analytics reports for a single render. Typically you'd set this up on an 
+    # Google Analytics reports for a single render. Typically you'd set this up on an
     # action-by-action basis:
     #    def show
     #      Rubaidh::GoogleAnalytics.override_trackpageview = "path_to_report"
     #      ...
     cattr_accessor :override_trackpageview
-    
+
+    @@search_engines = []
+    ##
+    # :singleton-method:
+    # Add search engines that should be used by GA for search traffic statistics.
+    cattr_accessor :search_engines
+
     # Return true if the Google Analytics system is enabled and configured
     # correctly for the specified format
     def self.enabled?(format)
       raise Rubaidh::GoogleAnalyticsConfigurationError if tracker_id.blank? || analytics_url.blank?
-      environments.include?(RAILS_ENV) && formats.include?(format.to_sym)
-    end
-    
-    # Construct the javascript code to be inserted on the calling page. The +ssl+
-    # parameter can be used to force the SSL version of the code in legacy mode only.
-    def self.google_analytics_code(ssl = false)
-      return legacy_google_analytics_code(ssl) if legacy_mode
-
-      extra_code = domain_name.blank? ? nil : "pageTracker._setDomainName(\"#{domain_name}\");"
-      if !override_domain_name.blank?
-        extra_code = "pageTracker._setDomainName(\"#{override_domain_name}\");"
-        self.override_domain_name = nil
-      end
-      
-      code = if local_javascript
-        <<-HTML
-        <script src="#{LocalAssetTagHelper.new.javascript_path( 'ga.js' )}" type="text/javascript">
-        </script>
-        HTML
-      else
-        <<-HTML
-      <script type="text/javascript">
-      var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
-      document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
-      </script>
-        HTML
-      end
-      
-      code << <<-HTML
-      <script type="text/javascript">
-      <!--//--><![CDATA[//><!--
-      try {
-      var pageTracker = _gat._getTracker('#{request_tracker_id}');
-      #{extra_code}
-      pageTracker._initData();
-      pageTracker._trackPageview(#{request_tracked_path});
-      } catch(err) {}
-      //--><!]]>
-      </script>
-      HTML
+      environments.include?(Rails.env) && formats.include?(format && format.to_sym)
     end
 
-    # Construct the legacy version of the Google Analytics code. The +ssl+
-    # parameter specifies whether or not to return the SSL version of the code.
-    def self.legacy_google_analytics_code(ssl = false)
-      extra_code = domain_name.blank? ? nil : "_udn = \"#{domain_name}\";"
-      if !override_domain_name.blank?
-        extra_code = "_udn = \"#{override_domain_name}\";"
+    # Construct the javascript code to be inserted on the calling page
+    def self.google_analytics_code(options = {})
+      if local_javascript
+	  return "<script src=\"#{LocalAssetTagHelper.new.javascript_path( 'ga.js' )}\" type=\"text/javascript\"></script>"
+      end
+      options[:universal] ? google_universal_code(options) : google_analytics_legacy_code(options)
+    end
+
+    def self.google_analytics_legacy_code(options = {})
+
+      extra_code = domain_name.blank? ? nil : "_gaq.push(['_setDomainName', #{domain_name.to_json}]);"
+      unless override_domain_name.blank?
+        extra_code = "_gaq.push(['_setDomainName',#{override_domain_name.to_json}]);"
         self.override_domain_name = nil
       end
 
-      url = legacy_analytics_js_url(ssl)
+      ecommerce_code = nil
+      if options[:transaction]
+        ecommerce_code = "\n_gaq.push(['_addTrans', #{options[:transaction].map {|i| i.to_json}.join(',')}]);\n"
+        options[:items].each do |item|
+          ecommerce_code << "_gaq.push(['_addItem', #{item.map {|i| i.to_json}.join(',')}]);\n"
+        end
+        ecommerce_code << "_gaq.push(['_trackTrans']);\n"
+      end
 
       code = <<-HTML
-      <script src="#{url}" type="text/javascript">
-      </script>
-      <script type="text/javascript">
-      _uacct = "#{request_tracker_id}";
-      #{extra_code}
-      urchinTracker(#{request_tracked_path});
-      </script>
+	<script type="text/javascript">
+
+	  var _gaq = _gaq || [];
+	  _gaq.push(['_setAccount', '#{request_tracker_id}']);
+	  #{extra_code}
+	  #{ecommerce_code}
       HTML
-    end
-    
-    # Generate the correct URL for the legacy Analytics JS file
-    def self.legacy_analytics_js_url(ssl = false)
-      if local_javascript
-        LocalAssetTagHelper.new.javascript_path( 'urchin.js' )
-      else
-        ssl ? analytics_ssl_url : analytics_url
+
+      search_engines.each do |search_engine, query_name|
+        code << "_gaq.push(['_addOrganic','#{search_engine}','#{query_name}']);"
       end
+
+      code << <<-HTML
+	  _gaq.push(['_trackPageview']);
+	  (function() {
+	    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+	    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+	    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+	  })();
+
+	</script>
+      HTML
+
+      return code
+    end
+
+    def self.google_universal_code(options = {})
+
+      # В Universal некоторые опции еперь указываются не отдельно, а параметрами ga('create')
+      create_options = {}
+      create_options['legacyCookieDomain'] = domain_name unless domain_name.blank?
+      unless override_domain_name.blank?
+        create_options['legacyCookieDomain'] = override_domain_name
+        self.override_domain_name = nil
+      end
+
+      ecommerce_code     = nil
+      # Список параметров нужен для получения JSON-хеша из массива со значениями в определенном порядке
+      # но без ключей
+      transaction_params = ['id', 'affiliation', 'revenue', 'tax', 'shipping']
+      item_params	 = ['id', 'sku', 'name', 'category', 'price', 'quantity']
+      if options[:transaction]
+	ecommerce_code = "\nga('require', 'ecommerce');\n"
+	# Объяснение метода zip на примере
+	# arr1 = ['a', 'b']
+	# arr2 = [1, 2]
+	# arr1.zip arr2 # => [['a', 1], ['b', 2]]
+	# Hash[ [['a', 1], ['b', 2]] ] # => {'a' => 1, 'b' => 2}
+        ecommerce_code << "ga('ecommerce:addTransaction', #{Hash[ transaction_params.zip (options[:transaction].map {|i| i.to_s}) ].to_json});\n"
+        options[:items].each do |item|
+          ecommerce_code << "ga('ecommerce:addItem', #{Hash[ item_params.zip (item.map {|i| i.to_s}) ].to_json});\n"
+        end
+        ecommerce_code << "ga('ecommerce:send');\n"
+      end
+
+      code= <<-HTML
+	<script type="text/javascript">
+	  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+	  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+	  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+	  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+	  ga('create', '#{request_tracker_id}', 'auto'#{create_options.empty? ? '' : ", #{create_options.to_json}" });
+	  #{ecommerce_code}
+	  ga('send', 'pageview');
+
+        </script>
+      HTML
+
+      return code
     end
 
     # Determine the tracker ID for this request
@@ -222,14 +257,14 @@ module Rubaidh # :nodoc:
       self.override_tracker_id = nil
       use_tracker_id
     end
-    
+
     # Determine the path to report for this request
     def self.request_tracked_path
       use_tracked_path = override_trackpageview.blank? ? '' : "'#{override_trackpageview}'"
       self.override_trackpageview = nil
       use_tracked_path
     end
-    
+
   end
 
   class LocalAssetTagHelper # :nodoc:

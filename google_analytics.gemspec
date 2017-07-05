@@ -27,5 +27,5 @@ spec = Gem::Specification.new do |s|
                 tasks/google_analytics.rake)
 
   s.add_dependency 'actionpack'
-  s.add_dependency 'activesupport'
+  s.add_dependency 'active_support'
 end
