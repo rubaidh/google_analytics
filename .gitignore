@@ -1,4 +1,6 @@
+.ruby-version
 .DS_Store
+Gemfile.lock
 /rdoc
 /coverage
 /pkg
