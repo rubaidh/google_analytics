@@ -1,0 +1,38 @@
+inherit_from:
+  - https://raw.githubusercontent.com/insales/code_style/master/ruby/rubocop.yml
+  - https://raw.githubusercontent.com/insales/code_style/master/ruby/rubocop_rails.yml
+
+AllCops:
+  Exclude:
+    - "db/schema.rb"
+    - "vendor/**/*"
+    - "proto/*.rb"
+  TargetRubyVersion: 2.3
+  TargetRailsVersion: 4.2
+
+Rails/SkipsModelValidations:
+  Enabled: false
+
+# Мы сплош и рядом используем execute и не откатываем на проде миграции
+Rails/ReversibleMigration:
+  Enabled: false
+
+# неоднозначно для нас. иногда используем свои кастомные методы для удаления зависимых записей
+Rails/HasManyOrHasOneDependent:
+  Enabled: false
+
+Style/AccessorMethodName:
+  Exclude:
+    - 'app/controllers/concerns/authorization_system.rb'
+Style/RegexpLiteral:
+  EnforcedStyle: slashes
+  AllowInnerSlashes: true
+Style/Alias:
+  Enabled: false
+
+Metrics/BlockLength:
+  Enabled: false
+Metrics/CyclomaticComplexity:
+  Enabled: false
+Metrics/PerceivedComplexity:
+  Enabled: false
