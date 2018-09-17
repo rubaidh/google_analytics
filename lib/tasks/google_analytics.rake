@@ -3,7 +3,7 @@ namespace :google_analytics do
   desc "Update the local copy of the Analytics JS"
   task :update => :environment do
     file = Rubaidh::GoogleAnalytics.legacy_mode ? 'urchin.js' : 'ga.js'
-    File.open( File.join( RAILS_ROOT, 'public', 'javascripts', file ), 'w+' ) do |f|
+    File.open( File.join( Rails.root, 'public', 'javascripts', file ), 'w+' ) do |f|
       res = Net::HTTP.get_response( 'www.google-analytics.com', '/' + file )
       f.write( res.plain_body )
     end

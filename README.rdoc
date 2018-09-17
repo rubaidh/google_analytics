@@ -92,7 +92,7 @@ configuration:
     namespace :deploy do
       desc "Update local Google Analytics files"
       task :google_analytics, :role => :web do
-        run "cd #{current_path} && rake google_analytics:update RAILS_ENV=#{ENV['RAILS_ENV']}"
+        run "cd #{current_path} && rake google_analytics:update Rails.env=#{ENV['Rails.env']}"
       end
     end
 

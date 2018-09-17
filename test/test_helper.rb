@@ -1,4 +1,4 @@
-ENV['RAILS_ENV'] = 'test'
+ENV['Rails.env'] = 'test'
 
 require 'rubygems'
 require 'test/unit'

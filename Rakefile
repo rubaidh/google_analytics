@@ -1,8 +1,7 @@
 require 'rake'
 require 'rake/testtask'
-require 'rake/rdoctask'
-require 'rake/gempackagetask'
-require 'rcov/rcovtask'
+require 'rdoc/task'
+require 'rubygems/package_task'
 require 'rubyforge'
 
 desc 'Default: run unit tests.'
@@ -17,12 +16,6 @@ Rake::TestTask.new(:test) do |t|
   t.verbose = true
 end
 
-Rcov::RcovTask.new do |t|
-  t.test_files = FileList["test/**/*_test.rb"]
-  t.verbose = true
-  t.rcov_opts = ["-x", "^/"]
-end
-
 desc 'Generate documentation for the google_analytics plugin.'
 Rake::RDocTask.new(:rdoc) do |rdoc|
   rdoc.rdoc_dir = 'rdoc'
@@ -34,7 +27,7 @@ end
 
 gem_spec = eval(File.read('google_analytics.gemspec'))
 
-Rake::GemPackageTask.new(gem_spec) do |p|
+Gem::PackageTask.new(gem_spec) do |p|
   p.need_tar = false
   p.need_zip = false
 end
