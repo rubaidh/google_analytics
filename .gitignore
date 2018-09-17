@@ -5,3 +5,6 @@ Gemfile.lock
 /coverage
 /pkg
 /test/reports
+
+/* remote rubocop configs, see: .rubocop.yml */
+.rubocop-*
