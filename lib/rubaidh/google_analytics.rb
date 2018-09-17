@@ -158,7 +158,11 @@ module Rubaidh # :nodoc:
       if local_javascript
 	  return "<script src=\"#{LocalAssetTagHelper.new.javascript_path( 'ga.js' )}\" type=\"text/javascript\"></script>"
       end
-      options[:universal] ? google_universal_code(options) : google_analytics_legacy_code(options)
+      if options[:universal]
+        options[:enhanced_ecommerce] ? universal_enhanced_code(options) : google_universal_code(options)
+      else
+        google_analytics_legacy_code(options)
+      end
     end
 
     def self.google_analytics_legacy_code(options = {})
@@ -203,6 +207,63 @@ module Rubaidh # :nodoc:
       HTML
 
       return code
+    end
+
+    def self.universal_enhanced_code(options = {})
+      # https://developers.google.com/analytics/devguides/collection/analyticsjs/enhanced-ecommerce
+      ecommerce_code = nil
+
+      if options[:transaction]
+        ecommerce_code = "\nga('require', 'ec');\n"
+        # https://developers.google.com/analytics/devguides/collection/analyticsjs/enhanced-ecommerce#product-data
+        # ga('ec:addProduct', {
+        #       'id': 'P12345',
+        #       'name': 'Android Warhol T-Shirt',
+        #       'category': 'Apparel',
+        #       'price': '29.20',
+        #       'quantity': 1,
+        #       'variant': 'Black'
+        #     });
+        options[:products_in_order].each do |product_hash|
+          ecommerce_code << "ga('ec:addProduct', #{product_hash.to_json});\n"
+        end
+        # https://developers.google.com/analytics/devguides/collection/analyticsjs/enhanced-ecommerce#action-data
+        # ga('ec:setAction', 'purchase', {          // Transaction details are provided in an actionFieldObject.
+        #   'id': 'T12345',                         // (Required) Transaction id (string).
+        #   'affiliation': 'Google Store - Online', // Affiliation (string).
+        #   'revenue': '37.39',                     // Revenue (currency).
+        #   'tax': '2.85',                          // Tax (currency).
+        #   'shipping': '5.34',                     // Shipping (currency).
+        # });
+        ecommerce_code << "ga('ec:setAction', 'purchase', #{options[:transaction].to_json});\n"
+      elsif options[:product_detail_options]
+        ecommerce_code = "\nga('require', 'ec');\n"
+        # https://developers.google.com/analytics/devguides/collection/analyticsjs/enhanced-ecommerce#product-data
+        # ga('ec:addProduct', {
+        #       'id': 'P12345',
+        #       'name': 'Android Warhol T-Shirt',
+        #       'category': 'Apparel',
+        #       'price': '29.20',
+        #     });
+        ecommerce_code << "ga('ec:addProduct', #{options[:product_detail_options].to_json});\n"
+        ecommerce_code << "ga('ec:setAction', 'detail'});\n"
+      end
+
+      code = <<-HTML
+        <script type="text/javascript">
+          (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+          (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+          })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+          ga('create', '#{request_tracker_id}');
+          #{ecommerce_code}
+          ga('send', 'pageview');
+
+        </script>
+      HTML
+
+      code
     end
 
     def self.google_universal_code(options = {})
