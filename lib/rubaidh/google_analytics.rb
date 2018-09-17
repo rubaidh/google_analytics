@@ -246,7 +246,7 @@ module Rubaidh # :nodoc:
         #       'price': '29.20',
         #     });
         ecommerce_code << "ga('ec:addProduct', #{options[:product_detail_options].to_json});\n"
-        ecommerce_code << "ga('ec:setAction', 'detail'});\n"
+        ecommerce_code << "ga('ec:setAction', 'detail');\n"
       end
 
       code = <<-HTML
