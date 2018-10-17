@@ -215,23 +215,30 @@ module Rubaidh # :nodoc:
 
       if options[:transaction]
         ecommerce_code = "\nga('require', 'ec');\n"
-        # https://developers.google.com/analytics/devguides/collection/analyticsjs/enhanced-ecommerce#product-data
-        # ga('ec:addProduct', {
-        #       'id': 'P12345',
-        #       'name': 'Android Warhol T-Shirt',
-        #       'category': 'Apparel',
-        #       'price': '29.20',
-        #       'quantity': 1,
-        #       'variant': 'Black'
-        #     });
-        options[:products_in_order].each do |product_hash|
-          ecommerce_code << "ga('ec:addProduct', #{product_hash.to_json});\n"
+        # нарезаем заказ нма куски по 5 товаров
+        options[:products_in_order].each_slice(5) do |products_slice|
+          products_slice.each do |product_hash|
+            # https://developers.google.com/analytics/devguides/collection/analyticsjs/enhanced-ecommerce#product-data
+            # ga('ec:addProduct', {
+            #       'id': 'P12345',
+            #       'name': 'Android Warhol T-Shirt',
+            #       'category': 'Apparel',
+            #       'price': '29.20',
+            #       'quantity': 1,
+            #       'variant': 'Black'
+            #     });
+            ecommerce_code << "ga('ec:addProduct', #{product_hash.to_json});\n"
+          end
+          # отправляем пачку товаров
+          ecommerce_code << "ga('ec:setAction', 'purchase', #{{ id: options[:transaction][:id] }.to_json});\n"
+          ecommerce_code << "ga('send', 'event', 'Checkout', 'PurchasePartial', 'items batch');\n"
         end
+        # удаляем поле revenue, чтобы не удваивалась прибыль: она посчитается по всем пачкам товаров, которые мы уже отправили
+        options[:transaction].delete(:revenue)
         # https://developers.google.com/analytics/devguides/collection/analyticsjs/enhanced-ecommerce#action-data
         # ga('ec:setAction', 'purchase', {          // Transaction details are provided in an actionFieldObject.
         #   'id': 'T12345',                         // (Required) Transaction id (string).
         #   'affiliation': 'Google Store - Online', // Affiliation (string).
-        #   'revenue': '37.39',                     // Revenue (currency).
         #   'tax': '2.85',                          // Tax (currency).
         #   'shipping': '5.34',                     // Shipping (currency).
         # });
@@ -254,7 +261,7 @@ module Rubaidh # :nodoc:
           (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
           (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
           m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-          })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+          })(window,document,'script','//www.google-analytics.com/analytics_debug.js','ga');
 
           ga('create', '#{request_tracker_id}');
           #{ecommerce_code}
